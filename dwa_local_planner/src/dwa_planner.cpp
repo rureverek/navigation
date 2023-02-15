@@ -49,6 +49,8 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 
 namespace dwa_local_planner {
+
+  /** TODO: At the end: choose parameters that will be possible to reconfigure in runtime */
   void DWAPlanner::reconfigure(DWAPlannerConfig &config)
   {
 
@@ -114,7 +116,7 @@ namespace dwa_local_planner {
  
 
   }
-
+  /** TODO: Init PotentialFieldMap somewhere here... */
   DWAPlanner::DWAPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util) :
       planner_util_(planner_util),
       obstacle_costs_(planner_util->getCostmap()),
@@ -160,6 +162,8 @@ namespace dwa_local_planner {
                           return getCellCosts(cx, cy, path_cost, goal_cost, occ_cost, total_cost);
                         });
 
+  /** TODO: Create visualisation for potential map here... */
+
     private_nh.param("global_frame_id", frame_id_, std::string("odom"));
 
     traj_cloud_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("trajectory_cloud", 1);
@@ -176,6 +180,8 @@ namespace dwa_local_planner {
     critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation
     critics.push_back(&twirling_costs_); // optionally prefer trajectories that don't spin
 
+  /** TODO: Create Custom Cost Fuction here */
+
     // trajectory generators
     std::vector<base_local_planner::TrajectorySampleGenerator*> generator_list;
     generator_list.push_back(&generator_);
@@ -186,6 +192,7 @@ namespace dwa_local_planner {
   }
 
   // used for visualization only, total_costs are not really total costs
+  /** TODO: Create similar for potential field */
   bool DWAPlanner::getCellCosts(int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost) {
 
     path_cost = path_costs_.getCellCosts(cx, cy);
@@ -239,7 +246,7 @@ namespace dwa_local_planner {
     return false;
   }
 
-
+  /** TODO: Modify this function to remove cost functions and insert custom cost function here */
   void DWAPlanner::updatePlanAndLocalCosts(
       const geometry_msgs::PoseStamped& global_pose,
       const std::vector<geometry_msgs::PoseStamped>& new_plan,
