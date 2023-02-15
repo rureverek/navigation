@@ -14,7 +14,6 @@
 #include <base_local_planner/trajectory_cost_function.h>
 
 #include <costmap_2d/costmap_2d.h>
-#include <base_local_planner/map_grid.h>
 
 namespace base_local_planner {
 

@@ -8,13 +8,12 @@
  * Author: Piotr Mikulowski @rureverek
  *********************************************************************/
 
-#include <base_local_planner/obstacle_rettractive_field.h>
+#include <base_local_planner/obstacle_field_cost_function.h>
 
 namespace base_local_planner {
 
 ObstacleFieldCostFunction::ObstacleFieldCostFunction(costmap_2d::Costmap2D* costmap) : 
-    costmap_(costmap),
-    map_(costmap->getSizeInCellsX(), costmap->getSizeInCellsY()) {}
+    costmap_(costmap) {}
 
 unsigned char ObstacleFieldCostFunction::getCellCosts(unsigned int px, unsigned int py) {
 

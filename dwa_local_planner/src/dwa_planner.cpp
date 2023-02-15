@@ -116,14 +116,15 @@ namespace dwa_local_planner {
  
 
   }
-  /** TODO: Init PotentialFieldMap somewhere here... */
+
   DWAPlanner::DWAPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util) :
       planner_util_(planner_util),
       obstacle_costs_(planner_util->getCostmap()),
       path_costs_(planner_util->getCostmap()),
       goal_costs_(planner_util->getCostmap(), 0.0, 0.0, true),
       goal_front_costs_(planner_util->getCostmap(), 0.0, 0.0, true),
-      alignment_costs_(planner_util->getCostmap())
+      alignment_costs_(planner_util->getCostmap()),
+      obstacle_field_(planner_util->getCostmap())
   {
     ros::NodeHandle private_nh("~/" + name);
 
@@ -156,13 +157,20 @@ namespace dwa_local_planner {
 
 
     private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, false);
+    /*
     map_viz_.initialize(name,
                         planner_util->getGlobalFrame(),
                         [this](int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost){
                           return getCellCosts(cx, cy, path_cost, goal_cost, occ_cost, total_cost);
                         });
+    */
 
-  /** TODO: Create visualisation for potential map here... */
+    // Visualisation for potential field
+    map_viz_.initialize(name,
+                        planner_util->getGlobalFrame(),
+                        [this](int cx, int cy, float &obstacle_field, float &goal_cost, float &total_cost){
+                          return getCellFieldCosts(cx, cy, obstacle_field, goal_cost, total_cost);
+                        });
 
     private_nh.param("global_frame_id", frame_id_, std::string("odom"));
 
@@ -172,15 +180,15 @@ namespace dwa_local_planner {
     // set up all the cost functions that will be applied in order
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
-    critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
-    critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
-    critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
-    critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
-    critics.push_back(&path_costs_); // prefers trajectories on global path
-    critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation
-    critics.push_back(&twirling_costs_); // optionally prefer trajectories that don't spin
+    //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
+    //critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
+    //critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
+    //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
+    //critics.push_back(&path_costs_); // prefers trajectories on global path
+    critics.push_back(&obstacle_field_); //obstacle field cost function
+    critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation (goal field)
 
-  /** TODO: Create Custom Cost Fuction here */
+    //critics.push_back(&twirling_costs_); // optionally prefer trajectories that don't spin
 
     // trajectory generators
     std::vector<base_local_planner::TrajectorySampleGenerator*> generator_list;
@@ -192,7 +200,6 @@ namespace dwa_local_planner {
   }
 
   // used for visualization only, total_costs are not really total costs
-  /** TODO: Create similar for potential field */
   bool DWAPlanner::getCellCosts(int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost) {
 
     path_cost = path_costs_.getCellCosts(cx, cy);
@@ -208,6 +215,16 @@ namespace dwa_local_planner {
         path_distance_bias_ * path_cost +
         goal_distance_bias_ * goal_cost +
         occdist_scale_ * occ_cost;
+    return true;
+  }
+  // custom for potential field, used for visualization only, total_costs are not really total costs
+  bool DWAPlanner::getCellFieldCosts(int cx, int cy, float &obstacle_cost, float &goal_cost, float &total_cost) {
+
+    obstacle_cost = obstacle_costs_.getCellCosts(cx, cy);
+    goal_cost = goal_costs_.getCellCosts(cx, cy);
+
+    total_cost = obstacle_cost + goal_distance_bias_ * goal_cost;
+
     return true;
   }
 
