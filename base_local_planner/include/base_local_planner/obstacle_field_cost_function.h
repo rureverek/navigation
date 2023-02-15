@@ -8,8 +8,8 @@
  * Author: Piotr Mikulowski @rureverek
  *********************************************************************/
 
-#ifndef OBSTACLE_RETT_FIELD_H
-#define OBSTACLE_RETT_FIELD_H
+#ifndef OBSTACLE_FIELD_COST_FUNCTION_H
+#define OBSTACLE_FIELD_COST_FUNCTION_H
 
 #include <base_local_planner/trajectory_cost_function.h>
 
@@ -35,4 +35,4 @@ private:
 };
 
 } /* namespace base_local_planner */
-#endif /* OBSTACLE_RETT_FIELD_H */
+#endif /* OBSTACLE_FIELD_COST_FUNCTION_H */
