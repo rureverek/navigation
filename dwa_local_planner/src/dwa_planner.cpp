@@ -157,13 +157,13 @@ namespace dwa_local_planner {
 
 
     private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, false);
-    /*
+    
     map_viz_.initialize(name,
                         planner_util->getGlobalFrame(),
                         [this](int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost){
                           return getCellCosts(cx, cy, path_cost, goal_cost, occ_cost, total_cost);
                         });
-    */
+    
 
     // Visualisation for potential field
     /*
@@ -182,7 +182,7 @@ namespace dwa_local_planner {
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
     //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
-    //critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
+    critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
     //critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
     //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
     //critics.push_back(&path_costs_); // prefers trajectories on global path

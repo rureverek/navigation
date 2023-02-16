@@ -10,6 +10,8 @@
 
 #include <base_local_planner/obstacle_field_cost_function.h>
 #include <ros/console.h>
+
+#define SCALE_FACTOR 0.01
 namespace base_local_planner {
 
 ObstacleFieldCostFunction::ObstacleFieldCostFunction(costmap_2d::Costmap2D* costmap) : 
@@ -39,7 +41,7 @@ double ObstacleFieldCostFunction::scoreTrajectory(Trajectory &traj) {
 
     cell_cost = getCellCosts(cell_x, cell_y);
 
-    cost += cell_cost;
+    cost = cell_cost*SCALE_FACTOR; //last
 
   }
   return cost;
