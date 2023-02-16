@@ -9,7 +9,7 @@
  *********************************************************************/
 
 #include <base_local_planner/obstacle_field_cost_function.h>
-
+#include <ros/console.h>
 namespace base_local_planner {
 
 ObstacleFieldCostFunction::ObstacleFieldCostFunction(costmap_2d::Costmap2D* costmap) : 

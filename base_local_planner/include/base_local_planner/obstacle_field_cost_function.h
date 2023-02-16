@@ -23,12 +23,14 @@ public:
 
   ~ObstacleFieldCostFunction() {}
 
+  bool prepare() {return true;}
+
   double scoreTrajectory(Trajectory &traj);
 
   unsigned char getCellCosts(unsigned int cx, unsigned int cy);
 
 private:
-  std::vector<geometry_msgs::PoseStamped> target_poses_;
+
   costmap_2d::Costmap2D* costmap_;
 
 };

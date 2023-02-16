@@ -166,12 +166,13 @@ namespace dwa_local_planner {
     */
 
     // Visualisation for potential field
+    /*
     map_viz_.initialize(name,
                         planner_util->getGlobalFrame(),
-                        [this](int cx, int cy, float &obstacle_field, float &goal_cost, float &total_cost){
-                          return getCellFieldCosts(cx, cy, obstacle_field, goal_cost, total_cost);
+                        [this](int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost){
+                          return getCellFieldCosts(cx, cy, obstacle_field_, goal_cost, total_cost);
                         });
-
+*/
     private_nh.param("global_frame_id", frame_id_, std::string("odom"));
 
     traj_cloud_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("trajectory_cloud", 1);
@@ -220,7 +221,7 @@ namespace dwa_local_planner {
   // custom for potential field, used for visualization only, total_costs are not really total costs
   bool DWAPlanner::getCellFieldCosts(int cx, int cy, float &obstacle_cost, float &goal_cost, float &total_cost) {
 
-    obstacle_cost = obstacle_costs_.getCellCosts(cx, cy);
+    obstacle_cost = obstacle_field_.getCellCosts(cx, cy);
     goal_cost = goal_costs_.getCellCosts(cx, cy);
 
     total_cost = obstacle_cost + goal_distance_bias_ * goal_cost;

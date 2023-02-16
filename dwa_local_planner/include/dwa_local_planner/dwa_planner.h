@@ -140,7 +140,6 @@ namespace dwa_local_planner {
        */
       bool getCellCosts(int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost);
 
-
       bool getCellFieldCosts(int cx, int cy, float &obstacle_cost, float &goal_cost, float &total_cost);
       /**
        * sets new plan and resets state
