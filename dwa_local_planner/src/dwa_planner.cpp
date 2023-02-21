@@ -159,7 +159,7 @@ namespace dwa_local_planner {
     obstacle_costs_.setSumScores(sum_scores);
 
 
-    private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, false);
+    private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, true);
     /*
     map_viz_.initialize(name,
                         planner_util->getGlobalFrame(),
