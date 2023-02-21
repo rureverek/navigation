@@ -57,7 +57,7 @@ namespace base_local_planner {
     cost_cloud.header.stamp = ros::Time::now();
 
     sensor_msgs::PointCloud2Modifier cloud_mod(cost_cloud);
-    cloud_mod.setPointCloud2Fields(7, "x", 1, sensor_msgs::PointField::FLOAT32,
+    cloud_mod.setPointCloud2Fields(6, "x", 1, sensor_msgs::PointField::FLOAT32,
                                       "y", 1, sensor_msgs::PointField::FLOAT32,
                                       "z", 1, sensor_msgs::PointField::FLOAT32,
                                       "goal_cost", 1, sensor_msgs::PointField::FLOAT32,
