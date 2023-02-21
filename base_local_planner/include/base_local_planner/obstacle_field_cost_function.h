@@ -14,6 +14,7 @@
 #include <base_local_planner/trajectory_cost_function.h>
 
 #include <costmap_2d/costmap_2d.h>
+#define SCALE_FACTOR 0.01
 
 namespace base_local_planner {
 

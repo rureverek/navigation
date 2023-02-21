@@ -11,7 +11,7 @@
 #include <base_local_planner/obstacle_field_cost_function.h>
 #include <ros/console.h>
 
-#define SCALE_FACTOR 0.01
+
 namespace base_local_planner {
 
 ObstacleFieldCostFunction::ObstacleFieldCostFunction(costmap_2d::Costmap2D* costmap) : 
