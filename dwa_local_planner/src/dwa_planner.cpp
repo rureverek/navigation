@@ -173,7 +173,7 @@ namespace dwa_local_planner {
     map_viz_pot.initialize(name,
                         planner_util->getGlobalFrame(),
                         [this](int cx, int cy, float &goal_cost, float &occ_cost, float &total_cost){
-                          return getCellFieldCosts(cx, cy, obstacle_field_, goal_cost, total_cost);
+                          return getCellFieldCosts(cx, cy, goal_cost, occ_cost, total_cost);
                         });
 
     private_nh.param("global_frame_id", frame_id_, std::string("odom"));
