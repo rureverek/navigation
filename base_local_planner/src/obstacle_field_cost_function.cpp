@@ -41,7 +41,7 @@ double ObstacleFieldCostFunction::scoreTrajectory(Trajectory &traj) {
 
     cell_cost = getCellCosts(cell_x, cell_y);
 
-    cost = cell_cost*SCALE_FACTOR; //last
+    cost += cell_cost*SCALE_FACTOR; //sum_average
 
   }
   return cost;

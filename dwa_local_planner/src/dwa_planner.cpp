@@ -160,13 +160,6 @@ namespace dwa_local_planner {
 
 
     private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, true);
-    /*
-    map_viz_.initialize(name,
-                        planner_util->getGlobalFrame(),
-                        [this](int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost){
-                          return getCellCosts(cx, cy, path_cost, goal_cost, occ_cost, total_cost);
-                        });
-    */
 
     // Visualisation for potential field
     
@@ -203,29 +196,15 @@ namespace dwa_local_planner {
     private_nh.param("cheat_factor", cheat_factor_, 1.0);
   }
 
-  // used for visualization only, total_costs are not really total costs
-  bool DWAPlanner::getCellCosts(int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost) {
-
-    path_cost = path_costs_.getCellCosts(cx, cy);
-    goal_cost = goal_costs_.getCellCosts(cx, cy);
-    occ_cost = planner_util_->getCostmap()->getCost(cx, cy);
-    if (path_cost == path_costs_.obstacleCosts() ||
-        path_cost == path_costs_.unreachableCellCosts() ||
-        occ_cost >= costmap_2d::INSCRIBED_INFLATED_OBSTACLE) {
-      return false;
-    }
-
-    total_cost =
-        path_distance_bias_ * path_cost +
-        goal_distance_bias_ * goal_cost +
-        occdist_scale_ * occ_cost;
-    return true;
-  }
   // custom for potential field, used for visualization only, total_costs are not really total costs
   bool DWAPlanner::getCellFieldCosts(int cx, int cy, float &goal_cost, float &occ_cost, float &total_cost) {
-
     occ_cost = obstacle_field_.getCellCosts(cx, cy);
     goal_cost = goal_costs_.getCellCosts(cx, cy);
+
+    if (occ_cost >= costmap_2d::INSCRIBED_INFLATED_OBSTACLE ||
+        goal_cost == goal_costs_.unreachableCellCosts()) {
+      return false;
+    }
 
     total_cost = occ_cost*obstacle_field_scale_ + goal_cost*goal_distance_bias_;
 
@@ -393,7 +372,6 @@ namespace dwa_local_planner {
     // verbose publishing of point clouds
     if (publish_cost_grid_pc_) {
       //we'll publish the visualization of the costs to rviz before returning our best trajectory
-      //map_viz_.publishCostCloud(planner_util_->getCostmap());
       map_viz_pot.publishCostCloud(planner_util_->getCostmap());
     }
 

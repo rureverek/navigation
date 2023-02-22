@@ -48,7 +48,7 @@ namespace base_local_planner {
     cost_function_ = cost_function;
 
     ns_nh_ = ros::NodeHandle("~/" + name_);
-    pub_ = ns_nh_.advertise<sensor_msgs::PointCloud2>("cost_cloud", 1);
+    pub_ = ns_nh_.advertise<sensor_msgs::PointCloud2>("cost_cloud_pot", 1);
   }
 
   void PotentialGridVisualizer::publishCostCloud(const costmap_2d::Costmap2D* costmap_p_) {
@@ -83,6 +83,7 @@ namespace base_local_planner {
           iter_x[3] = goal_cost;
           iter_x[4] = occ_cost;
           iter_x[5] = total_cost;
+          if(total_cost >= 10000)return;
           ++iter_x;
         }
       }
