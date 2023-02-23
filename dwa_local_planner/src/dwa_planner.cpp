@@ -246,7 +246,6 @@ namespace dwa_local_planner {
     return false;
   }
 
-  /** TODO: Modify this function to remove cost functions and insert custom cost function here */
   void DWAPlanner::updatePlanAndLocalCosts(
       const geometry_msgs::PoseStamped& global_pose,
       const std::vector<geometry_msgs::PoseStamped>& new_plan,
@@ -295,6 +294,14 @@ namespace dwa_local_planner {
       // once we are close to goal, trying to keep the nose close to anything destabilizes behavior.
       alignment_costs_.setScale(0.0);
     }
+  
+    if (sq_dist < forward_point_distance_ * forward_point_distance_){
+      obstacle_field_.setScale(0.0);
+    }
+    else {
+      obstacle_field_.setScale(obstacle_field_scale_);
+    }
+
   }
 
 
