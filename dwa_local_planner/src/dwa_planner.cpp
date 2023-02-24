@@ -94,7 +94,7 @@ namespace dwa_local_planner {
     vx_samp = config.vx_samples;
     vy_samp = config.vy_samples;
     vth_samp = config.vth_samples;
- 
+    
     if (vx_samp <= 0) {
       ROS_WARN("You've specified that you don't want any samples in the x dimension. We'll at least assume that you want to sample one value... so we're going to set vx_samples to 1 instead");
       vx_samp = 1;
@@ -157,32 +157,56 @@ namespace dwa_local_planner {
     bool sum_scores;
     private_nh.param("sum_scores", sum_scores, false);
     obstacle_costs_.setSumScores(sum_scores);
+    private_nh.param("potential_planner", potential_planner_, true);
 
 
-    private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, true);
+    if(potential_planner_){
+      private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, true);
+      ROS_INFO("Set potential field!");
+    }
+    else {
+      private_nh.param("publish_cost_grid_pc", publish_cost_grid_pc_, false);
+      ROS_INFO("Not set potential field!");
+    }
 
     // Visualisation for potential field
-    
-    map_viz_pot.initialize(name,
+
+
+    if(potential_planner_){
+      map_viz_pot.initialize(name,
                         planner_util->getGlobalFrame(),
                         [this](int cx, int cy, float &goal_cost, float &occ_cost, float &total_cost){
                           return getCellFieldCosts(cx, cy, goal_cost, occ_cost, total_cost);
                         });
+    }
+    else {
+    map_viz_.initialize(name,
+                        planner_util->getGlobalFrame(),
+                        [this](int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost){
+                          return getCellCosts(cx, cy, path_cost, goal_cost, occ_cost, total_cost);
+                        });
+    }
+
 
     private_nh.param("global_frame_id", frame_id_, std::string("odom"));
-
     traj_cloud_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("trajectory_cloud", 1);
     private_nh.param("publish_traj_pc", publish_traj_pc_, false);
 
     // set up all the cost functions that will be applied in order
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
-    //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
+
+    if(potential_planner_){
+      critics.push_back(&obstacle_field_); //obstacle field cost function
+    }
+    else {
+      critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
+      critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
+      critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
+      critics.push_back(&path_costs_); // prefers trajectories on global path
+    }
+    /* Common cost functions */
     critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
-    //critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
-    //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
-    //critics.push_back(&path_costs_); // prefers trajectories on global path
-    critics.push_back(&obstacle_field_); //obstacle field cost function
     critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation (goal field)
 
     //critics.push_back(&twirling_costs_); // optionally prefer trajectories that don't spin
@@ -194,6 +218,25 @@ namespace dwa_local_planner {
     scored_sampling_planner_ = base_local_planner::SimpleScoredSamplingPlanner(generator_list, critics);
 
     private_nh.param("cheat_factor", cheat_factor_, 1.0);
+  }
+
+  // used for visualization only, total_costs are not really total costs
+  bool DWAPlanner::getCellCosts(int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost) {
+
+    path_cost = path_costs_.getCellCosts(cx, cy);
+    goal_cost = goal_costs_.getCellCosts(cx, cy);
+    occ_cost = planner_util_->getCostmap()->getCost(cx, cy);
+    if (path_cost == path_costs_.obstacleCosts() ||
+        path_cost == path_costs_.unreachableCellCosts() ||
+        occ_cost >= costmap_2d::INSCRIBED_INFLATED_OBSTACLE) {
+      return false;
+    }
+
+    total_cost =
+        path_distance_bias_ * path_cost +
+        goal_distance_bias_ * goal_cost +
+        occdist_scale_ * occ_cost;
+    return true;
   }
 
   // custom for potential field, used for visualization only, total_costs are not really total costs
@@ -294,14 +337,14 @@ namespace dwa_local_planner {
       // once we are close to goal, trying to keep the nose close to anything destabilizes behavior.
       alignment_costs_.setScale(0.0);
     }
-  
-    if (sq_dist < forward_point_distance_ * forward_point_distance_){
-      obstacle_field_.setScale(0.0);
+    if(potential_planner_){
+      if (sq_dist < forward_point_distance_ * forward_point_distance_){
+        obstacle_field_.setScale(0.0);
+      }
+      else {
+        obstacle_field_.setScale(obstacle_field_scale_);
+      }
     }
-    else {
-      obstacle_field_.setScale(obstacle_field_scale_);
-    }
-
   }
 
 
@@ -379,7 +422,12 @@ namespace dwa_local_planner {
     // verbose publishing of point clouds
     if (publish_cost_grid_pc_) {
       //we'll publish the visualization of the costs to rviz before returning our best trajectory
-      map_viz_pot.publishCostCloud(planner_util_->getCostmap());
+      if(potential_planner_){
+        map_viz_pot.publishCostCloud(planner_util_->getCostmap());
+      }
+      else {
+        map_viz_.publishCostCloud(planner_util_->getCostmap());
+      }
     }
 
     // debrief stateful scoring functions
