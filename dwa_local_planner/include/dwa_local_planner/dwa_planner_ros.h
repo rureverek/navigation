@@ -56,6 +56,7 @@
 #include <base_local_planner/odometry_helper_ros.h>
 
 #include <dwa_local_planner/dwa_planner.h>
+#include <std_msgs/Float64.h>
 
 namespace dwa_local_planner {
   /**
@@ -134,7 +135,8 @@ namespace dwa_local_planner {
 
       // for visualisation, publishers of global and local plan
       ros::Publisher g_plan_pub_, l_plan_pub_;
-
+      ros::Publisher timing_dwa;
+      std_msgs::Float64 pubmsg;
       base_local_planner::LocalPlannerUtil planner_util_;
 
       boost::shared_ptr<DWAPlanner> dp_; ///< @brief The trajectory controller

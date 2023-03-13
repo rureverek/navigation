@@ -45,6 +45,7 @@
 
 #include <base_local_planner/goal_functions.h>
 #include <nav_msgs/Path.h>
+#include <std_msgs/Float64.h>
 #include <tf2/utils.h>
 
 #include <nav_core/parameter_magic.h>
@@ -103,6 +104,7 @@ namespace dwa_local_planner {
       ros::NodeHandle private_nh("~/" + name);
       g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
+      timing_dwa = private_nh.advertise<std_msgs::Float64>("timing", 1);
       tf_ = tf;
       costmap_ros_ = costmap_ros;
       costmap_ros_->getRobotPose(current_pose_);
@@ -195,11 +197,11 @@ namespace dwa_local_planner {
     geometry_msgs::PoseStamped robot_vel;
     odom_helper_.getRobotVel(robot_vel);
 
-    /* For timing uncomment
+    /* For timing uncomment */
     struct timeval start, end;
     double start_t, end_t, t_diff;
     gettimeofday(&start, NULL);
-    */
+    
 
     //compute what trajectory to drive along
     geometry_msgs::PoseStamped drive_cmds;
@@ -209,13 +211,13 @@ namespace dwa_local_planner {
     base_local_planner::Trajectory path = dp_->findBestPath(global_pose, robot_vel, drive_cmds);
     //ROS_ERROR("Best: %.2f, %.2f, %.2f, %.2f", path.xv_, path.yv_, path.thetav_, path.cost_);
 
-    /* For timing uncomment
+    /* For timing uncomment */
     gettimeofday(&end, NULL);
     start_t = start.tv_sec + double(start.tv_usec) / 1e6;
     end_t = end.tv_sec + double(end.tv_usec) / 1e6;
     t_diff = end_t - start_t;
-    ROS_INFO("Cycle time: %.9f", t_diff);
-    */
+    pubmsg.data = t_diff;
+    timing_dwa.publish(pubmsg);  
 
     //pass along drive commands
     cmd_vel.linear.x = drive_cmds.pose.position.x;
